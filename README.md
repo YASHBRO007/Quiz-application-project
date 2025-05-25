@@ -68,5 +68,25 @@ Add the JDBC JAR to the project dependencies
 
 Run Main.java
 
+💾 Saving Results
+After the quiz, users are prompted to enter their name.
+
+Their name and score are saved into the database.
+
+🧪 Example Questions
+Questions are hardcoded for simplicity. You can update them in the Question.java or QuizFrame.java.
+
+📌 Notes
+Ensure the database file or connection details are accessible when launching the app.
+
+No external frameworks are used, just core Java and JDBC.
+
+📃 License
+This project is open-source and available under the MIT License.
+
+---
+
+Let me know if you want the README customized for **MySQL** only or if you'd like me to extract the exact database setup and code structure from your uploaded `.zip`.
+
 
 
