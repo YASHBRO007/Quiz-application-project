@@ -1,0 +1,7 @@
+
+CREATE TABLE IF NOT EXISTS results (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(100),
+    score INT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
