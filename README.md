@@ -81,12 +81,11 @@ Ensure the database file or connection details are accessible when launching the
 
 No external frameworks are used, just core Java and JDBC.
 
-📃 License
-This project is open-source and available under the MIT License.
 
----
 
-Let me know if you want the README customized for **MySQL** only or if you'd like me to extract the exact database setup and code structure from your uploaded `.zip`.
+
+
+
 
 
 
