@@ -8,11 +8,36 @@ import java.util.List;
 public class QuizApp {
 
     public static void main(String[] args) {
-        String userName = JOptionPane.showInputDialog(null, "Enter your name:", "Welcome to the Java Quiz", JOptionPane.QUESTION_MESSAGE);
-        if (userName == null || userName.trim().isEmpty()) {
+        // Apply dark theme and custom fonts for the input dialog
+        UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 20));
+        UIManager.put("OptionPane.buttonFont", new Font("Arial", Font.PLAIN, 16));
+        UIManager.put("OptionPane.minimumSize", new Dimension(500, 180));
+        UIManager.put("Panel.background", Color.BLACK);
+        UIManager.put("OptionPane.background", Color.BLACK);
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(30, 30, 30));
+        UIManager.put("Button.foreground", Color.WHITE);
+
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("Arial", Font.PLAIN, 18));
+        nameField.setBackground(Color.DARK_GRAY);
+        nameField.setForeground(Color.WHITE);
+        nameField.setCaretColor(Color.WHITE);
+
+        int result = JOptionPane.showConfirmDialog(
+                null,
+                nameField,
+                "Enter your name:",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION || nameField.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Name is required to start the quiz.");
             return;
         }
+
+        String userName = nameField.getText().trim();
         SwingUtilities.invokeLater(() -> new QuizUI(userName));
     }
 }
@@ -40,42 +65,63 @@ class QuizUI extends JFrame implements ActionListener {
     private final JRadioButton[] options;
     private final ButtonGroup group;
     private final JButton nextButton;
+    private final JPanel mainPanel;
 
     public QuizUI(String userName) {
         this.userName = userName;
         questions = loadQuestions();
 
         setTitle("Java Quiz - " + userName);
-        setSize(600, 400);
+        setSize(700, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+
+        // White dot and color customization for radio buttons
+        UIManager.put("RadioButton.focus", new Color(255, 255, 255, 100));
+        UIManager.put("RadioButton.selectionForeground", Color.WHITE);
+        UIManager.put("RadioButton.foreground", Color.WHITE);
+
+        mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBackground(new Color(33, 40, 48));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
         questionLabel = new JLabel("Question will appear here");
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        questionLabel.setForeground(Color.WHITE);
         questionLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(questionLabel, BorderLayout.NORTH);
+        mainPanel.add(questionLabel, BorderLayout.NORTH);
 
-        JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 5, 5));
+        JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 10, 10));
+        optionsPanel.setBackground(new Color(44, 52, 62));
         optionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         options = new JRadioButton[4];
         group = new ButtonGroup();
 
         for (int i = 0; i < 4; i++) {
             options[i] = new JRadioButton();
-            options[i].setFont(new Font("Arial", Font.PLAIN, 14));
+            options[i].setFont(new Font("Arial", Font.PLAIN, 15));
+            options[i].setBackground(new Color(44, 52, 62));
+            options[i].setForeground(Color.WHITE);
+            options[i].setFocusPainted(false);
             group.add(options[i]);
             optionsPanel.add(options[i]);
         }
 
-        add(optionsPanel, BorderLayout.CENTER);
+        mainPanel.add(optionsPanel, BorderLayout.CENTER);
 
         nextButton = new JButton("Next");
-        nextButton.setFont(new Font("Arial", Font.BOLD, 14));
+        nextButton.setFont(new Font("Arial", Font.BOLD, 15));
+        nextButton.setBackground(new Color(0, 123, 255));
+        nextButton.setForeground(Color.WHITE);
+        nextButton.setFocusPainted(false);
         nextButton.addActionListener(this);
+
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(new Color(33, 40, 48));
         buttonPanel.add(nextButton);
-        add(buttonPanel, BorderLayout.SOUTH);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(mainPanel);
 
         displayQuestion(currentIndex);
         setVisible(true);
@@ -90,7 +136,12 @@ class QuizUI extends JFrame implements ActionListener {
 
             while (rs.next()) {
                 String text = rs.getString("question_text");
-                String[] opts = {rs.getString("option1"), rs.getString("option2"), rs.getString("option3"), rs.getString("option4")};
+                String[] opts = {
+                    rs.getString("option1"),
+                    rs.getString("option2"),
+                    rs.getString("option3"),
+                    rs.getString("option4")
+                };
                 int correct = rs.getInt("correct_index");
                 list.add(new Question(text, opts, correct));
             }
