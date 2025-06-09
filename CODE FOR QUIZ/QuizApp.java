@@ -13,7 +13,7 @@ public class QuizApp {
             JOptionPane.showMessageDialog(null, "Name is required to start the quiz.");
             return;
         }
-        new QuizUI(userName);
+        SwingUtilities.invokeLater(() -> new QuizUI(userName));
     }
 }
 
@@ -34,32 +34,36 @@ class QuizUI extends JFrame implements ActionListener {
     private List<Question> questions;
     private int currentIndex = 0;
     private int score = 0;
-    private String userName;
+    private final String userName;
 
-    private JLabel questionLabel;
-    private JRadioButton[] options;
-    private ButtonGroup group;
-    private JButton nextButton;
+    private final JLabel questionLabel;
+    private final JRadioButton[] options;
+    private final ButtonGroup group;
+    private final JButton nextButton;
 
     public QuizUI(String userName) {
         this.userName = userName;
         questions = loadQuestions();
 
         setTitle("Java Quiz - " + userName);
-        setSize(500, 300);
+        setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
 
         questionLabel = new JLabel("Question will appear here");
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        questionLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(questionLabel, BorderLayout.NORTH);
 
-        JPanel optionsPanel = new JPanel(new GridLayout(4, 1));
+        JPanel optionsPanel = new JPanel(new GridLayout(4, 1, 5, 5));
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         options = new JRadioButton[4];
         group = new ButtonGroup();
 
         for (int i = 0; i < 4; i++) {
             options[i] = new JRadioButton();
+            options[i].setFont(new Font("Arial", Font.PLAIN, 14));
             group.add(options[i]);
             optionsPanel.add(options[i]);
         }
@@ -67,14 +71,40 @@ class QuizUI extends JFrame implements ActionListener {
         add(optionsPanel, BorderLayout.CENTER);
 
         nextButton = new JButton("Next");
+        nextButton.setFont(new Font("Arial", Font.BOLD, 14));
         nextButton.addActionListener(this);
-        add(nextButton, BorderLayout.SOUTH);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(nextButton);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         displayQuestion(currentIndex);
         setVisible(true);
     }
 
     private List<Question> loadQuestions() {
+        List<Question> list = new ArrayList<>();
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quiz_app", "root", "1234");
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM questions");
+
+            while (rs.next()) {
+                String text = rs.getString("question_text");
+                String[] opts = {rs.getString("option1"), rs.getString("option2"), rs.getString("option3"), rs.getString("option4")};
+                int correct = rs.getInt("correct_index");
+                list.add(new Question(text, opts, correct));
+            }
+
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Failed to load questions from database: " + ex.getMessage());
+        }
+        return list.isEmpty() ? defaultQuestions() : list;
+    }
+
+    private List<Question> defaultQuestions() {
         List<Question> list = new ArrayList<>();
         list.add(new Question("What is the size of int in Java?", new String[]{"16 bit", "32 bit", "64 bit", "Depends on OS"}, 1));
         list.add(new Question("Which keyword is used to inherit a class in Java?", new String[]{"this", "super", "extends", "implements"}, 2));
@@ -117,15 +147,18 @@ class QuizUI extends JFrame implements ActionListener {
         if (currentIndex < questions.size()) {
             displayQuestion(currentIndex);
         } else {
-            JOptionPane.showMessageDialog(this, "Quiz Over, " + userName + "! Your score is: " + score + "/" + questions.size());
-            saveResultToDatabase(userName, score); // Save result before exiting
-            System.exit(0);
+            showResult();
         }
+    }
+
+    private void showResult() {
+        JOptionPane.showMessageDialog(this, "Quiz Over, " + userName + "! Your score is: " + score + "/" + questions.size());
+        saveResultToDatabase(userName, score);
+        dispose();
     }
 
     private void saveResultToDatabase(String name, int score) {
         try {
-            // Replace credentials and DB URL as needed
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quiz_app", "root", "1234");
             String sql = "INSERT INTO quiz_results (name, score) VALUES (?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
