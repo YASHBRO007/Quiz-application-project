@@ -1,28 +1,41 @@
-import javax.swing.JOptionPane;
+public class QuizApp {
 
-public class Main {
     public static void main(String[] args) {
-        String userName = JOptionPane.showInputDialog(null, "Enter your name:", "Welcome to the Java Quiz", JOptionPane.QUESTION_MESSAGE);
-        if (userName == null || userName.trim().isEmpty()) {
+        // Apply dark theme and custom fonts for the input dialog
+        UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 20));
+        UIManager.put("OptionPane.buttonFont", new Font("Arial", Font.PLAIN, 16));
+        UIManager.put("OptionPane.minimumSize", new Dimension(500, 180));
+        UIManager.put("Panel.background", Color.BLACK);
+        UIManager.put("OptionPane.background", Color.BLACK);
+        UIManager.put("OptionPane.messageForeground", Color.WHITE);
+        UIManager.put("Button.background", new Color(30, 30, 30));
+        UIManager.put("Button.foreground", Color.WHITE);
+
+        // Create a custom input field for the user's name
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("Arial", Font.PLAIN, 18));
+        nameField.setBackground(Color.DARK_GRAY);
+        nameField.setForeground(Color.WHITE);
+        nameField.setCaretColor(Color.WHITE);
+
+        // Show the input dialog
+        int result = JOptionPane.showConfirmDialog(
+                null,
+                nameField,
+                "Enter your name:",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        // Validate the input
+        if (result != JOptionPane.OK_OPTION || nameField.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Name is required to start the quiz.");
             return;
         }
-        new ui.QuizUI(userName);
-    }
 
-    private void saveResultToDatabase(String name, int score) {
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/quiz_app", "root", "1234");
-            String sql = "INSERT INTO quiz_results (name, score) VALUES (?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, name);
-            stmt.setInt(2, score);
-            stmt.executeUpdate();
-            stmt.close();
-            conn.close();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Failed to save result to database: " + ex.getMessage());
-        }
-    }
+        String userName = nameField.getText().trim();
 
+        // Launch the quiz UI
+        SwingUtilities.invokeLater(() -> new QuizUI(userName));
+    }
 }
